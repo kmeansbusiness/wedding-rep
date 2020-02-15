@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
+import re
 import requests
 
 
@@ -12,23 +13,24 @@ class SilverScraper(object):
         self.base_url = 'https://www.silverarrowband.com/Astro/DB'
         self.master_url = 'https://www.silverarrowband.com/Astro/DB/MusicianViewGigs.php?MusicianID=ChrisMcCarthy&SiD=61915660&HistoricalSearch=On'
         self.song_dict = defaultdict(int)
+        self.setlists = defaultdict(list)
 
 
-    def get_song_dict(self):
+    def populate(self):
         '''
         Scrape each song sheet into a song dictionary of counts
         '''
         worksheets = self.get_worksheets(self.master_url)
         print(f'found {len(worksheets)} worksheets')
         for i, worksheet in enumerate(worksheets):
-            print(f'scraping {worksheet} {i} / {len(worksheets)}')
+            print(f'{i+1} / {len(worksheets)}: {worksheet} ')
             setlists = self.get_setlists(worksheet)
             for setlist in setlists:
-                songs = self.get_songs(setlist)
-                for song in songs:
-                    self.song_dict[song] += 1
+                if setlist in self.setlists:
+                    continue
+                self.get_songs(setlist)
 
-
+    
     def get_songs(self, setlist_link):
         '''
         Format backend request to setlist service
@@ -39,11 +41,10 @@ class SilverScraper(object):
         soup = BeautifulSoup(html, features='html.parser')
         song_p = soup.find_all('p')[2]  # weird 3-level nesting
         
-        setlist = []
         for song in song_p.stripped_strings:
-            setlist.append(self.clean_song_name(song))
-
-        return setlist
+            clean_song = self.clean_song_name(song)
+            if clean_song:
+                self.setlists[setlist_link].append(clean_song)
 
 
     def clean_song_name(self, song):
@@ -52,8 +53,20 @@ class SilverScraper(object):
         
         e.g. lowercase, parse out key info
         '''
+        lower_case = song.lower()
+        # remove decorative annotations from song sheets
+        categories = ['dance', 'dance:', 'chill']
+        if '=' in song or song in categories:
+            return None
 
-        return song.lower()
+        # strip out hyphens and grab first element
+        song_title = lower_case.split('-')[0]
+
+        # remove keys
+        key_pattern = r'\([a-g][#b]?\)'
+        removed_key = re.sub(key_pattern, '', song_title).strip()
+
+        return removed_key
 
 
     def get_setlists(self, worksheet_link):
@@ -95,9 +108,3 @@ class SilverScraper(object):
         else:
             print('no worksheets found')
             return []
-
-
-
-if __name__ == '__main__':
-    parser = WeddingParser()
-    parser.get_song_dict()
