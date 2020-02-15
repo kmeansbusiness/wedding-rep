@@ -26,6 +26,7 @@ class SilverScraper(object):
             print(f'{i+1} / {len(worksheets)}: {worksheet} ')
             setlists = self.get_setlists(worksheet)
             for setlist in setlists:
+                # a setlist can appear across multiple worksheets, so need to dedup
                 if setlist in self.setlists:
                     continue
                 self.get_songs(setlist)
