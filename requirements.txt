@@ -2,6 +2,6 @@ beautifulsoup4
 jupyterlab
 matplotlib
 pandas
-plotly
 requests
 seaborn
+spotipy
