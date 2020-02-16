@@ -60,8 +60,8 @@ class SilverScraper(object):
         if '=' in song or song in categories:
             return None
 
-        # strip out hyphens and grab first element
-        song_title = lower_case.split('-')[0]
+        # strip out hyphens and grab first element, and replace punctuation
+        song_title = lower_case.split('-')[0].replace(',','')
 
         # remove keys
         key_pattern = r'\([a-g][#b]?\)'
