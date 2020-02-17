@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
+import os
 import re
 import requests
 
@@ -10,8 +11,8 @@ class SilverScraper(object):
         '''
         Initialize links we will use to scrape songsheets
         '''
-        self.base_url = 'https://www.silverarrowband.com/Astro/DB'
-        self.master_url = 'https://www.silverarrowband.com/Astro/DB/MusicianViewGigs.php?MusicianID=ChrisMcCarthy&SiD=61915660&HistoricalSearch=On'
+        self.base_url = os.getenv('BASE_URL')
+        self.master_url = os.getenv('MASTER_URL')
         self.song_dict = defaultdict(int)
         self.setlists = defaultdict(list)
 
